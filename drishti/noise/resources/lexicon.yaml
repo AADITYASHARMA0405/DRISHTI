@@ -1,0 +1,98 @@
+# Vocabulary used to find attribute phrases in a description.
+# Extend freely: add a word to the right list and the simulator picks it up (no code change needed).
+
+colors: [black, white, grey, gray, red, blue, green, yellow, orange, pink, purple, brown, maroon, navy,
+         beige, cream, violet, golden, gold, silver, khaki, olive, teal, cyan, magenta, crimson, turquoise,
+         peach, saffron, mustard, tan, lavender, burgundy, indigo, multicolored, colorful, colourful]
+
+# multi-word colours are matched before single words
+multiword_colors: ["off white", "rani pink", "haldi yellow", "sky blue", "navy blue", "bottle green",
+                   "olive green", "light blue", "dark blue", "light green", "dark green", "light pink",
+                   "dark red", "light grey", "dark grey", "light gray", "dark gray", "light brown",
+                   "dark brown"]
+
+color_modifiers: [light, dark, bright, pale, deep]
+
+patterns: [striped, stripes, checked, checkered, plaid, printed, floral, plain, dotted, polka,
+           embroidered, zari, bandhani, patterned, graphic, logo]
+
+# garment -> category and salience.
+# salient: large / central items witnesses usually remember; peripheral: small items they often forget.
+garments:
+  # full body
+  saree: {category: full, salient: true}
+  sari: {category: full, salient: true}
+  "salwar kameez": {category: full, salient: true}
+  "half saree": {category: full, salient: true}
+  lehenga: {category: full, salient: true}
+  anarkali: {category: full, salient: true}
+  burqa: {category: full, salient: true}
+  abaya: {category: full, salient: true}
+  dress: {category: full, salient: true}
+  gown: {category: full, salient: true}
+  uniform: {category: full, salient: true}
+  # upper body
+  kurta: {category: upper, salient: true}
+  kurti: {category: upper, salient: true}
+  shirt: {category: upper, salient: true}
+  "t-shirt": {category: upper, salient: true}
+  "t shirt": {category: upper, salient: true}
+  tshirt: {category: upper, salient: true}
+  top: {category: upper, salient: true}
+  blouse: {category: upper, salient: true}
+  jacket: {category: upper, salient: true}
+  coat: {category: upper, salient: true}
+  sweater: {category: upper, salient: true}
+  hoodie: {category: upper, salient: true}
+  sweatshirt: {category: upper, salient: true}
+  vest: {category: upper, salient: true}
+  "nehru jacket": {category: upper, salient: true}
+  # lower body
+  jeans: {category: lower, salient: true}
+  trousers: {category: lower, salient: true}
+  pants: {category: lower, salient: true}
+  shorts: {category: lower, salient: true}
+  skirt: {category: lower, salient: true}
+  leggings: {category: lower, salient: true}
+  salwar: {category: lower, salient: true}
+  churidar: {category: lower, salient: true}
+  palazzo: {category: lower, salient: true}
+  dhoti: {category: lower, salient: true}
+  lungi: {category: lower, salient: true}
+  mundu: {category: lower, salient: true}
+  # drapes
+  dupatta: {category: drape, salient: false}
+  stole: {category: drape, salient: false}
+  shawl: {category: drape, salient: false}
+  scarf: {category: drape, salient: false}
+  gamcha: {category: drape, salient: false}
+  # head
+  cap: {category: head, salient: false}
+  hat: {category: head, salient: false}
+  turban: {category: head, salient: false}
+  pagdi: {category: head, salient: false}
+  topi: {category: head, salient: false}
+  hijab: {category: head, salient: false}
+  helmet: {category: head, salient: false}
+  # carried items
+  backpack: {category: carry, salient: true}
+  bag: {category: carry, salient: false}
+  handbag: {category: carry, salient: false}
+  purse: {category: carry, salient: false}
+  jhola: {category: carry, salient: false}
+  umbrella: {category: carry, salient: false}
+  # footwear (most often forgotten)
+  shoes: {category: footwear, salient: false}
+  sneakers: {category: footwear, salient: false}
+  sandals: {category: footwear, salient: false}
+  slippers: {category: footwear, salient: false}
+  chappals: {category: footwear, salient: false}
+  boots: {category: footwear, salient: false}
+  heels: {category: footwear, salient: false}
+  juttis: {category: footwear, salient: false}
+  kolhapuri: {category: footwear, salient: false}
+  # accessories
+  glasses: {category: accessory, salient: false}
+  sunglasses: {category: accessory, salient: false}
+  watch: {category: accessory, salient: false}
+  belt: {category: accessory, salient: false}

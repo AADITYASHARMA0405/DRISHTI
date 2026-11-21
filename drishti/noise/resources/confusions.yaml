@@ -1,0 +1,132 @@
+# Plausible witness mistakes. Extend as you collect real witness data in Phase 2.
+
+# commission: a colour is confidently reported as one of these instead
+color_confusions:
+  red: [maroon, orange, pink]
+  maroon: [red, brown, purple]
+  black: [navy, grey, brown]
+  navy: [black, blue]
+  "navy blue": [black, blue]
+  blue: [black, green, purple]
+  "dark blue": [black, purple]
+  "light blue": [white, grey, green]
+  "sky blue": [white, grey]
+  white: [grey, cream, beige]
+  cream: [white, beige, yellow]
+  "off white": [white, cream]
+  grey: [white, black, silver]
+  gray: [white, black, silver]
+  green: [blue, olive, black]
+  olive: [green, brown, khaki]
+  yellow: [orange, golden, cream]
+  golden: [yellow, orange]
+  orange: [red, yellow, saffron]
+  saffron: [orange, yellow]
+  pink: [red, purple, peach]
+  "rani pink": [red, purple, magenta]
+  purple: [blue, pink, maroon]
+  brown: [black, maroon, khaki]
+  beige: [white, brown, cream]
+  khaki: [brown, beige, olive]
+  mustard: [yellow, orange]
+  "haldi yellow": [yellow, orange]
+
+# commission: a garment is confused with another in the same group
+garment_groups:
+  - [saree, lehenga, "half saree", sari]
+  - [kurta, kurti, shirt, top]
+  - [salwar, churidar, leggings, palazzo]
+  - [dhoti, lungi, mundu]
+  - [jeans, trousers, pants]
+  - [shorts, skirt]
+  - ["t-shirt", shirt, top]
+  - [jacket, coat, sweater, hoodie, sweatshirt]
+  - [backpack, bag, handbag, jhola]
+  - [sandals, chappals, slippers]
+  - [shoes, sneakers, boots]
+  - [cap, hat]
+  - [dupatta, stole, scarf, shawl]
+  - [glasses, sunglasses]
+
+# vagueness: a specific term is replaced by a coarser one
+vague_colors:
+  black: dark
+  navy: dark
+  "navy blue": dark
+  "dark blue": dark
+  "dark green": dark
+  "dark grey": dark
+  "dark gray": dark
+  maroon: dark
+  brown: dark
+  burgundy: dark
+  white: light
+  cream: light
+  beige: light
+  "off white": light
+  "light blue": light
+  "sky blue": light
+  "light grey": light
+  "light gray": light
+  "light pink": light
+  crimson: red
+  "dark red": red
+  "rani pink": pink
+  magenta: pink
+  peach: pink
+  "haldi yellow": yellow
+  mustard: yellow
+  golden: yellow
+  gold: yellow
+  saffron: orange
+  olive: green
+  "bottle green": green
+  "olive green": green
+  teal: blue
+  turquoise: blue
+  indigo: blue
+  violet: purple
+  lavender: purple
+
+vague_garments:
+  kurta: top
+  kurti: top
+  shirt: top
+  "t-shirt": top
+  "t shirt": top
+  tshirt: top
+  blouse: top
+  sweater: top
+  hoodie: top
+  sweatshirt: top
+  jacket: top
+  "nehru jacket": jacket
+  jeans: pants
+  trousers: pants
+  salwar: pants
+  churidar: pants
+  leggings: pants
+  palazzo: pants
+  saree: dress
+  sari: dress
+  lehenga: dress
+  anarkali: dress
+  "half saree": dress
+  dhoti: "white cloth"
+  lungi: cloth
+  mundu: cloth
+  sneakers: shoes
+  boots: shoes
+  sandals: footwear
+  chappals: footwear
+  slippers: footwear
+  juttis: footwear
+  backpack: bag
+  handbag: bag
+  purse: bag
+  jhola: bag
+  dupatta: cloth
+  stole: cloth
+  shawl: cloth
+  scarf: cloth
+  sunglasses: glasses
