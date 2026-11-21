@@ -1,0 +1,13 @@
+# Indian-language tools, needed only for scripts/make_indic_queries.py and the demo's language box.
+# Install after requirements.txt. A GPU is strongly recommended for translation.
+sentencepiece
+sacremoses
+indic-nlp-library        # normalisation, tokenisation, script conversion (used by the fallback processor)
+indic-transliteration    # romanization fallback (pure Python, exactly reversible)
+
+# Official IndicTrans2 pre/post-processor. Builds out of the box on Linux (Kaggle / Colab). On Windows it
+# needs "Microsoft C++ Build Tools"; without it, drishti/lang/translate.py uses an equivalent fallback.
+# Generate the query sets reported in the paper with the official toolkit.
+IndicTransToolkit; sys_platform != "win32"
+
+# Optional, more natural romanization: pip install ai4bharat-transliteration

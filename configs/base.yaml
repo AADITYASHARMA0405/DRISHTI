@@ -1,0 +1,56 @@
+# Shared defaults. Other configs start with `base: base.yaml` and override what they need.
+# Any value can also be overridden on the command line:  --opts train.epochs=5 data.num_workers=4
+
+run_name: base
+seed: 42
+output_root: outputs
+
+data:
+  dataset: cuhk_pedes
+  json: /kaggle/input/cuhk-pedes/reid_raw.json      # PEDES-style annotation file
+  image_root: /kaggle/input/cuhk-pedes/imgs         # folder that file_path entries are relative to
+  image_size: [384, 128]                            # (height, width); use [224, 224] if your transformers
+                                                    # version cannot interpolate position embeddings
+  num_workers: 2
+
+model:
+  backbone: hf_clip                                 # hf_clip | toy
+  name: openai/clip-vit-base-patch16
+  max_text_len: 77
+  temperature: 0.02
+  learn_temperature: false
+
+train:
+  epochs: 10
+  batch_size: 64
+  lr: 1.0e-5          # pre-trained encoder weights
+  lr_new: 1.0e-3      # newly added layers (none in the MVP)
+  weight_decay: 0.02
+  warmup_epochs: 1
+  grad_accum: 1
+  amp: true           # mixed precision on GPU
+
+loss:
+  sdm: 1.0            # Similarity Distribution Matching weight
+  robust_triplet: 0.0 # lambda_1 for the noise-robust soft-margin triplet loss
+  margin: 0.2         # m_0, shrunk per sample by (1 - k/A)
+
+noise:                # curriculum of witness errors during training
+  enabled: false
+  clean_epochs: 2     # epochs of clean data before noise starts
+  start_ratio: 0.1    # fraction of corrupted captions when noise starts
+  end_ratio: 0.5      # fraction in the last epoch
+  ops: [omission, vagueness, commission]
+  max_severity: 3
+
+masking:
+  prob: 0.0           # per-attribute probability of dropping an attribute's words
+
+eval:
+  every_epoch: true
+  split: val
+  batch_size: 128
+
+wandb:
+  enabled: false
+  project: drishti

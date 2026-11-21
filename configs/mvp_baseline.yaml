@@ -1,0 +1,3 @@
+# MVP baseline: CLIP ViT-B/16 fine-tuned with the SDM loss on clean CUHK-PEDES.
+base: base.yaml
+run_name: mvp_baseline

@@ -1,0 +1,16 @@
+# Core (needed for training and evaluation)
+torch>=2.1
+torchvision>=0.16
+transformers>=4.45
+pyyaml>=6.0
+numpy>=1.24
+pillow>=10.0
+tqdm>=4.66
+pytest>=8.0
+
+# Search and demo
+faiss-cpu>=1.8
+gradio>=4.0
+
+# Experiment tracking (optional; set wandb.enabled: true in the config)
+wandb>=0.17

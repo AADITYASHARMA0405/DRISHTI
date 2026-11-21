@@ -1,0 +1,18 @@
+# MVP robust model on a 6 GB laptop GPU (RTX 4050). See rtx4050_baseline.yaml for the memory measurements.
+base: ../mvp_robust.yaml
+run_name: mvp_robust
+
+data:
+  json: datasets/CUHK-PEDES/reid_raw.json
+  image_root: datasets/CUHK-PEDES/imgs
+  num_workers: 4
+
+model:
+  grad_checkpointing: true
+
+train:
+  batch_size: 64
+  grad_accum: 1
+
+eval:
+  batch_size: 128

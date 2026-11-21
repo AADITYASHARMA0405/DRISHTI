@@ -1,0 +1,12 @@
+# MVP robust model v1: baseline + attribute masking + soft-margin triplet + clean-to-noisy curriculum.
+base: base.yaml
+run_name: mvp_robust
+
+loss:
+  robust_triplet: 1.0
+
+noise:
+  enabled: true
+
+masking:
+  prob: 0.15

@@ -1,0 +1,9 @@
+[project]
+name = "drishti"
+version = "0.1.0"
+description = "Witness-robust multilingual text-based person search (RVCE ANN & DL project)"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+
+# Data and outputs (never commit datasets or checkpoints)
+datasets/
+outputs/
+query_sets/
+*.pt
+*.pth
+*.ckpt
+*.npz
+*.index
+wandb/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local tool settings
+.claude/

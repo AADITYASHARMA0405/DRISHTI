@@ -1,0 +1,21 @@
+# MVP baseline on a 6 GB laptop GPU (RTX 4050).
+# Measured with scripts/check_gpu.py (CLIP ViT-B/16, 384x128, AMP):
+#   no checkpointing : batch 32 = 4.95 GiB; batch 64 = 7.78 GiB -> spills to system RAM, ~12x slower
+#   grad checkpointing: batch 64 = 3.03 GiB, ~1.1 s/step  <- used here (same batch as the paper runs)
+base: ../mvp_baseline.yaml
+run_name: mvp_baseline
+
+data:
+  json: datasets/CUHK-PEDES/reid_raw.json
+  image_root: datasets/CUHK-PEDES/imgs
+  num_workers: 4
+
+model:
+  grad_checkpointing: true
+
+train:
+  batch_size: 64
+  grad_accum: 1
+
+eval:
+  batch_size: 128

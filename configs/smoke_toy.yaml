@@ -1,0 +1,40 @@
+# Tiny CPU-only config for smoke tests: synthetic data from scripts/make_toy_data.py and a toy network.
+# Proves the whole pipeline runs end to end in about a minute without downloading CLIP.
+base: base.yaml
+run_name: smoke_toy
+
+data:
+  dataset: toy
+  json: datasets/toy/toy_pedes.json
+  image_root: datasets/toy/imgs
+  image_size: [64, 32]
+  num_workers: 0
+
+model:
+  backbone: toy
+  name: toy
+  max_text_len: 32
+  temperature: 0.07
+  learn_temperature: true
+
+train:
+  epochs: 16
+  batch_size: 32
+  lr: 3.0e-3
+  lr_new: 3.0e-3
+  weight_decay: 0.0
+  warmup_epochs: 0
+  amp: false
+
+loss:
+  robust_triplet: 1.0
+
+noise:
+  enabled: true
+  clean_epochs: 8
+
+masking:
+  prob: 0.15
+
+eval:
+  batch_size: 64
