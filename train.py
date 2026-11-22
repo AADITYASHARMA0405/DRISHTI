@@ -64,9 +64,11 @@ def main(argv=None) -> dict:
     model = DualEncoder(cfg).to(device)
     ds = PedesTrain(cfg, seed=cfg["seed"])
     tc = cfg["train"]
+    # persistent_workers must stay False: workers hold their own copy of the dataset, so a persistent
+    # worker would never see the noise ratio that ds.set_epoch() sets for each epoch of the curriculum.
     dl = DataLoader(ds, batch_size=tc["batch_size"], shuffle=True, drop_last=True,
                     num_workers=cfg["data"].get("num_workers", 0), collate_fn=collate_train,
-                    pin_memory=device.type == "cuda", persistent_workers=cfg["data"].get("num_workers", 0) > 0)
+                    pin_memory=device.type == "cuda", persistent_workers=False)
     opt = torch.optim.AdamW(model.param_groups(float(tc["lr"]), float(tc["lr_new"]),
                                                float(tc["weight_decay"])))
     accum = int(tc.get("grad_accum", 1))
