@@ -71,12 +71,22 @@ class PedesTrain(Dataset):
         self.ops = list(ncfg.get("ops", OPS))
         self.max_sev = int(ncfg.get("max_severity", 3))
         self.mask_prob = float((cfg.get("masking", {}) or {}).get("prob", 0.0))
-        self.noise_ratio = 0.0
         self.seed = seed
-        self.epoch = 0
+        # [epoch, noise_ratio] in shared memory: DataLoader workers receive a handle to the same storage, so
+        # persistent workers see every set_epoch() call without being restarted each epoch.
+        self._state = torch.zeros(2, dtype=torch.float64).share_memory_()
+
+    @property
+    def epoch(self) -> int:
+        return int(self._state[0])
+
+    @property
+    def noise_ratio(self) -> float:
+        return float(self._state[1])
 
     def set_epoch(self, epoch: int, noise_ratio: float) -> None:
-        self.epoch, self.noise_ratio = epoch, noise_ratio
+        self._state[0] = epoch
+        self._state[1] = noise_ratio
 
     def __len__(self) -> int:
         return len(self.items)
