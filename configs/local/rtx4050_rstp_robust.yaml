@@ -1,0 +1,19 @@
+# Phase 1 robust model v1 on RSTPReid on the 6 GB RTX 4050 (masking + soft-margin triplet + curriculum).
+base: ../mvp_robust.yaml
+run_name: rstp_robust
+
+data:
+  dataset: rstpreid
+  json: datasets/RSTPReid/data_captions.json
+  image_root: datasets/RSTPReid/imgs
+  num_workers: 4
+
+model:
+  grad_checkpointing: true
+
+train:
+  batch_size: 64
+  grad_accum: 1
+
+eval:
+  batch_size: 128

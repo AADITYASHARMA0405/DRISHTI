@@ -1,0 +1,20 @@
+# Phase 1 baseline on RSTPReid (official release, 4,101 persons, 15 cameras) on the 6 GB RTX 4050.
+# Published reference (ViT-B/16): TBPS-CLIP 61.95 R1 / 48.26 mAP; IRRA 60.20 R1 / 47.17 mAP.
+base: ../mvp_baseline.yaml
+run_name: rstp_baseline
+
+data:
+  dataset: rstpreid
+  json: datasets/RSTPReid/data_captions.json
+  image_root: datasets/RSTPReid/imgs
+  num_workers: 4
+
+model:
+  grad_checkpointing: true
+
+train:
+  batch_size: 64
+  grad_accum: 1
+
+eval:
+  batch_size: 128
