@@ -27,6 +27,14 @@ def test_multiword_colours_and_garments():
     assert found == {"t shirt": ["navy blue"], "jeans": ["light blue"]}
 
 
+def test_style_words_do_not_break_colour_link(sim):
+    units, attrs = parse("he wears a black down jacket and brown leather shoes")
+    found = {a.noun: [units[i].lower() for i in a.color_idxs] for a in attrs}
+    assert found == {"jacket": ["black"], "shoes": ["brown"]}
+    r = sim.corrupt("he wears a black down jacket", "omission", 1, random.Random(0))
+    assert r.text == "he wears a down jacket"          # colour forgotten, material kept
+
+
 @pytest.mark.parametrize("op", ["omission", "vagueness", "commission", "mixed"])
 @pytest.mark.parametrize("sev", [1, 2, 3])
 def test_severity_counts(sim, op, sev):

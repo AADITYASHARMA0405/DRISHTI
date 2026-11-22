@@ -16,6 +16,15 @@ color_modifiers: [light, dark, bright, pale, deep]
 patterns: [striped, stripes, checked, checkered, plaid, printed, floral, plain, dotted, polka,
            embroidered, zari, bandhani, patterned, graphic, logo]
 
+# material / style words that sit between a colour and its garment ("black down jacket", "brown leather
+# shoes"). They belong to the attribute but the error operators leave them unchanged.
+style_modifiers: [down, down-filled, leather, cotton, cotton-padded, padded, woolen, wool, woollen, knitted,
+                  denim, canvas, suede, fur, silk, nylon, sports, sport, running, casual, formal, hooded,
+                  long, short, long-sleeved, short-sleeved, sleeveless, high-heeled, flat, thick, thin, loose,
+                  tight, slim, big, small, large, plastic, paper, shoulder, school, single, double, cross-body,
+                  waist, ankle, knee-length, full-length, baseball, sun, peaked, rain, face, medical, surgical,
+                  traditional, ethnic, silk]
+
 # garment -> category and salience.
 # salient: large / central items witnesses usually remember; peripheral: small items they often forget.
 garments:
@@ -42,6 +51,15 @@ garments:
   blouse: {category: upper, salient: true}
   jacket: {category: upper, salient: true}
   coat: {category: upper, salient: true}
+  overcoat: {category: upper, salient: true}
+  raincoat: {category: upper, salient: true}
+  windbreaker: {category: upper, salient: true}
+  jumper: {category: upper, salient: true}
+  cardigan: {category: upper, salient: true}
+  blazer: {category: upper, salient: true}
+  suit: {category: full, salient: true}
+  overalls: {category: full, salient: true}
+  clothes: {category: full, salient: true}
   sweater: {category: upper, salient: true}
   hoodie: {category: upper, salient: true}
   sweatshirt: {category: upper, salient: true}
@@ -51,6 +69,11 @@ garments:
   jeans: {category: lower, salient: true}
   trousers: {category: lower, salient: true}
   pants: {category: lower, salient: true}
+  pant: {category: lower, salient: true}
+  sweatpants: {category: lower, salient: true}
+  slacks: {category: lower, salient: true}
+  tights: {category: lower, salient: true}
+  stockings: {category: lower, salient: false}
   shorts: {category: lower, salient: true}
   skirt: {category: lower, salient: true}
   leggings: {category: lower, salient: true}
@@ -74,6 +97,9 @@ garments:
   topi: {category: head, salient: false}
   hijab: {category: head, salient: false}
   helmet: {category: head, salient: false}
+  hair: {category: head, salient: true}
+  hood: {category: head, salient: false}
+  mask: {category: head, salient: false}
   # carried items
   backpack: {category: carry, salient: true}
   bag: {category: carry, salient: false}
@@ -81,6 +107,13 @@ garments:
   purse: {category: carry, salient: false}
   jhola: {category: carry, salient: false}
   umbrella: {category: carry, salient: false}
+  schoolbag: {category: carry, salient: true}
+  satchel: {category: carry, salient: false}
+  knapsack: {category: carry, salient: true}
+  suitcase: {category: carry, salient: true}
+  bicycle: {category: carry, salient: true}
+  bike: {category: carry, salient: true}
+  scooter: {category: carry, salient: true}
   # footwear (most often forgotten)
   shoes: {category: footwear, salient: false}
   sneakers: {category: footwear, salient: false}
@@ -91,8 +124,11 @@ garments:
   heels: {category: footwear, salient: false}
   juttis: {category: footwear, salient: false}
   kolhapuri: {category: footwear, salient: false}
+  trainers: {category: footwear, salient: false}
+  socks: {category: footwear, salient: false}
   # accessories
   glasses: {category: accessory, salient: false}
   sunglasses: {category: accessory, salient: false}
   watch: {category: accessory, salient: false}
   belt: {category: accessory, salient: false}
+  gloves: {category: accessory, salient: false}

@@ -47,6 +47,15 @@ garment_groups:
   - [cap, hat]
   - [dupatta, stole, scarf, shawl]
   - [glasses, sunglasses]
+  - [overcoat, coat, raincoat, windbreaker]
+  - [jumper, sweater, cardigan]
+  - [sweatpants, slacks, trousers]
+  - [tights, stockings, leggings]
+  - [trainers, sneakers]
+  - [schoolbag, knapsack, backpack]
+  - [satchel, handbag, purse]
+  - [bicycle, bike, scooter]
+  - [hood, hat, cap]
 
 # vagueness: a specific term is replaced by a coarser one
 vague_colors:
@@ -130,3 +139,21 @@ vague_garments:
   shawl: cloth
   scarf: cloth
   sunglasses: glasses
+  overcoat: coat
+  raincoat: coat
+  windbreaker: jacket
+  jumper: top
+  cardigan: top
+  blazer: jacket
+  sweatpants: pants
+  slacks: pants
+  pant: pants
+  tights: leggings
+  trainers: shoes
+  schoolbag: bag
+  satchel: bag
+  knapsack: bag
+  suitcase: luggage
+  bicycle: vehicle
+  bike: vehicle
+  scooter: vehicle

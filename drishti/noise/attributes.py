@@ -28,6 +28,7 @@ class Attribute:
     color_idxs: list[int] = field(default_factory=list)   # colour words and light/dark modifiers
     pattern_idxs: list[int] = field(default_factory=list)
     joiner_idxs: list[int] = field(default_factory=list)  # "and" inside "black and white"
+    style_idxs: list[int] = field(default_factory=list)   # material / style words, never corrupted
 
     @property
     def mod_idxs(self) -> list[int]:
@@ -40,6 +41,7 @@ def load_lexicon(path: str | None = None) -> dict:
     lex["colors"] = set(lex["colors"]) | set(lex["multiword_colors"])
     lex["color_modifiers"] = set(lex["color_modifiers"])
     lex["patterns"] = set(lex["patterns"])
+    lex["style_modifiers"] = set(lex.get("style_modifiers", []))
     lex["_multi"] = sorted({w for w in list(lex["multiword_colors"]) + list(lex["garments"]) if " " in w},
                            key=lambda w: -len(w.split()))
     return lex
@@ -97,6 +99,8 @@ def parse(text: str, lex: dict | None = None) -> tuple[list[str], list[Attribute
                 a.color_idxs.append(j)
             elif low[j] in lex["patterns"]:
                 a.pattern_idxs.append(j)
+            elif low[j] in lex["style_modifiers"]:
+                a.style_idxs.append(j)
             elif low[j] in ("and", "-", "/") and j - 1 >= 0 and low[j - 1] in lex["colors"]:
                 a.joiner_idxs.append(j)
             else:
