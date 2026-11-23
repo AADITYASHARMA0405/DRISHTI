@@ -123,3 +123,55 @@ application.
 2. Each member: accept the IndicTrans2 licence on Hugging Face and log in; run
    `scripts/check_translation.py`, then the Indic query generation.
 3. Show the demo to the faculty guide (MVP sign-off).
+
+---
+
+## Phase 1 – Execution on real data (RSTPReid)
+
+### Dataset decision
+| Option | Access | Decision |
+|---|---|---|
+| CUHK-PEDES | Only by request to the original authors; Hugging Face copies are unofficial re-uploads | Requested separately; added when access is granted |
+| **RSTPReid** | Official release on the dataset's GitHub (Google Drive link) | **Used for Phase 1** |
+
+RSTPReid (Zhu et al., ACM MM 2021): 20,505 images of 4,101 persons from 15 cameras, two captions per image.
+The downloaded copy matches the published split exactly: 3,701 / 200 / 200 identities; the test split has
+1,000 images and 2,000 captions. Published reference (ViT-B/16): **TBPS-CLIP 61.95 R1 / 48.26 mAP**,
+IRRA 60.20 / 47.17, so AC1 asks for a baseline of about 60 R1.
+
+### AC2 – frozen noisy test sets
+* Before freezing the sets, a data-driven check found the parser missed material words between colour and
+  garment ("black **down** jacket" 9,707 times, "brown **leather** shoes", ...) and nouns such as overcoat,
+  hair, schoolbag and sweatpants. After adding them, the parser finds **3.9 attributes per caption** (was
+  3.3), 72% of them with a colour.
+* 12 noisy sets (omission / vagueness / commission / mixed × severity 1–3) of 2,000 queries each; 97.9–99.9%
+  of queries are changed; mean corrupted attributes ≈ severity.
+* Reproducible: generated twice, same checksum **`cfa305ad54858e86`** (seed 2026). **Done.**
+
+### Zero-shot CLIP ViT-B/16 (no training) – the "before" reference
+
+| Query set | R1 | R5 | R10 | mAP |
+|---|---|---|---|---|
+| clean | 14.15 | 32.45 | 44.30 | 10.26 |
+| omission s1 / s2 / s3 | 12.50 / 10.80 / 8.65 | 28.65 / 25.90 / 22.10 | 40.75 / 36.50 / 32.40 | 9.10 / 7.99 / 6.66 |
+| vagueness s1 / s2 / s3 | 14.10 / 12.65 / 11.90 | 30.05 / 28.95 / 26.75 | 42.00 / 40.15 / 39.45 | 9.84 / 9.23 / 8.68 |
+| commission s1 / s2 / s3 | 11.20 / 9.30 / 7.05 | 29.35 / 25.05 / 21.60 | 40.05 / 35.80 / 31.50 | 8.88 / 7.69 / 6.51 |
+| mixed s1 / s2 / s3 | 12.40 / 10.50 / 8.40 | 28.30 / 25.45 / 23.65 | 40.25 / 36.65 / 33.35 | 9.24 / 7.98 / 6.85 |
+
+Three confident mistakes halve Rank-1 (14.15 → 7.05); vagueness hurts least. This is the gap the robust
+model must close.
+
+### Problems found while running, and fixes
+
+| Problem | Effect | Fix | Verified by |
+|---|---|---|---|
+| DataLoader workers kept their own copy of the dataset | The noise curriculum would silently stay at 0% with `num_workers > 0` | Curriculum state moved to a shared-memory tensor that all workers read | `tests/test_curriculum_workers.py` (2 and persistent workers) |
+| Recreating 4 workers each epoch on Windows | 3–4 extra minutes per epoch | Persistent workers (safe after the fix above) | Same test |
+| Laptop slept overnight; session end killed training | First baseline run lost ~12 hours and stopped in epoch 3 | Training asks Windows to stay awake while it runs; full resume (optimizer, scheduler, scaler, RNG) every epoch; `--stop-after N`; jobs started outside the chat session (`scripts/launch_detached.ps1`) | `tests/test_resume.py`: stopped-and-resumed run matches an uninterrupted run |
+| Run script had no model-cache path | Offline run could not find CLIP | `HF_HOME` passed by the launcher | Run started |
+
+### Runs (in progress)
+`scripts/run_phase1.sh 1 2 3`: baseline and robust model × seeds 1–3 on the RTX 4050 (batch 64, gradient
+checkpointing, ≈ 1.47 s/step, 578 steps/epoch, 10 epochs ≈ 2.5 h per run), each followed by evaluation on
+the clean set and all 12 noisy sets. Results go to `outputs/results_rstpreid.csv` and
+`outputs/summary_rstpreid.md`.
