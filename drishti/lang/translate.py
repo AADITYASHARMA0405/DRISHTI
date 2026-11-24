@@ -110,3 +110,69 @@ class IndicTranslator:
             dec = self.tok.batch_decode(gen, skip_special_tokens=True, clean_up_tokenization_spaces=True)
             out.extend(self.ip.postprocess_batch(dec, lang=t))
         return out
+
+
+NLLB_MODEL = "facebook/nllb-200-distilled-600M"
+
+
+class NLLBTranslator:
+    """Meta NLLB-200 (distilled 600M): one model for every direction, not gated on Hugging Face.
+    Used automatically when IndicTrans2 cannot be downloaded (its licence must be accepted per account)."""
+
+    name = "NLLB-200 distilled 600M"
+
+    def __init__(self, device: str | None = None, fp16: bool = True):
+        from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+
+        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        self.tok = AutoTokenizer.from_pretrained(NLLB_MODEL)
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(NLLB_MODEL).to(self.device).eval()
+        if fp16 and self.device == "cuda":
+            self.model = self.model.half()
+
+    @torch.no_grad()
+    def translate(self, texts: list[str], src: str, tgt: str, batch_size: int = 32,
+                  num_beams: int = 4, max_length: int = 256) -> list[str]:
+        self.tok.src_lang = LANG_CODES[src]
+        bos = self.tok.convert_tokens_to_ids(LANG_CODES[tgt])
+        out: list[str] = []
+        for i in range(0, len(texts), batch_size):
+            enc = self.tok(texts[i:i + batch_size], return_tensors="pt", padding=True, truncation=True,
+                           max_length=max_length).to(self.device)
+            gen = self.model.generate(**enc, forced_bos_token_id=bos, num_beams=num_beams,
+                                      max_length=max_length)
+            out.extend(self.tok.batch_decode(gen, skip_special_tokens=True))
+        return out
+
+
+class IndicTrans2Translator:
+    """Both IndicTrans2 directions behind one translate(texts, src, tgt) call; models load on first use."""
+
+    name = "IndicTrans2 distilled 200M"
+
+    def __init__(self, device: str | None = None):
+        self.device = device
+        self._models: dict[str, IndicTranslator] = {}
+        self._get("en-indic")          # fail fast (e.g. gated repo) so the caller can fall back
+
+    def _get(self, direction: str) -> IndicTranslator:
+        if direction not in self._models:
+            self._models[direction] = IndicTranslator(direction, device=self.device)
+        return self._models[direction]
+
+    def translate(self, texts: list[str], src: str, tgt: str, **kw) -> list[str]:
+        return self._get("en-indic" if src == "en" else "indic-en").translate(texts, src, tgt, **kw)
+
+
+def get_translator(prefer: str = "indictrans2", device: str | None = None, log=print):
+    """IndicTrans2 when its licence has been accepted on Hugging Face, otherwise NLLB-200."""
+    if prefer == "indictrans2":
+        try:
+            t = IndicTrans2Translator(device)
+            log(f"[translate] using {t.name}")
+            return t
+        except (OSError, ImportError) as e:
+            log(f"[translate] IndicTrans2 unavailable ({str(e).splitlines()[0][:100]}); falling back to NLLB-200")
+    t = NLLBTranslator(device)
+    log(f"[translate] using {t.name}")
+    return t

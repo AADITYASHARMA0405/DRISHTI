@@ -8,7 +8,7 @@ For each language L in {hi, kn} this writes:
     L_t2s.json      native script translated back to English (translate-then-search baseline, MVP AC5)
     L_rom_t2s.json  romanized -> native script -> English
 These are machine translations: they simulate Indian-language queries for the MVP. Natively written
-witness queries are collected in Phase 2.
+witness queries are collected in Phase 2. Each file records which translator produced it.
 """
 from __future__ import annotations
 
@@ -29,9 +29,11 @@ def main(argv=None) -> None:
     ap.add_argument("--limit", type=int, default=None, help="only the first N queries (quick tests)")
     ap.add_argument("--batch-size", type=int, default=32)
     ap.add_argument("--no-romanized", action="store_true")
+    ap.add_argument("--translator", default="indictrans2", choices=["indictrans2", "nllb"],
+                    help="IndicTrans2 falls back to NLLB-200 automatically if its licence is not accepted")
     a = ap.parse_args(argv)
 
-    from drishti.lang.translate import IndicTranslator
+    from drishti.lang.translate import get_translator
 
     qs = load_query_set(a.inp)
     queries = qs["queries"][: a.limit] if a.limit else qs["queries"]
@@ -39,9 +41,8 @@ def main(argv=None) -> None:
     out = Path(a.out)
     base = qs["name"]
 
-    fwd = IndicTranslator("en-indic")
-    native = {L: fwd.translate(texts, "en", L, batch_size=a.batch_size) for L in a.langs}
-    del fwd
+    tr = get_translator(prefer=a.translator)
+    native = {L: tr.translate(texts, "en", L, batch_size=a.batch_size) for L in a.langs}
 
     rom = None
     if not a.no_romanized:
@@ -49,13 +50,14 @@ def main(argv=None) -> None:
         rom = Romanizer()
         print(f"romanizer backend: {rom.backend}")
 
-    back = IndicTranslator("indic-en")
+    back = tr
     for L in a.langs:
         tag = f"{base}_{L}" if base != "clean" else L
 
         def save(name, txts, language, **meta):
             save_query_set(out / f"{name}.json", name,
-                           [{**q, "text": t, "en": q["text"]} for q, t in zip(queries, txts)], language, **meta)
+                           [{**q, "text": t, "en": q["text"]} for q, t in zip(queries, txts)], language,
+                           translator=tr.name, **meta)
 
         save(tag, native[L], L)
         save(f"{tag}_t2s", back.translate(native[L], L, "en", batch_size=a.batch_size), "en",

@@ -12,7 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from drishti.lang.romanize import Romanizer  # noqa: E402
-from drishti.lang.translate import IndicTranslator  # noqa: E402
+from drishti.lang.translate import get_translator  # noqa: E402
 
 SENTENCES = [
     "A woman wearing a red saree with a golden border, carrying a black handbag.",
@@ -25,14 +25,13 @@ SENTENCES = [
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="outputs/translation_check.txt")
+    ap.add_argument("--translator", default="indictrans2", choices=["indictrans2", "nllb"])
     a = ap.parse_args(argv)
     lines = []
     t0 = time.time()
-    fwd = IndicTranslator("en-indic")
-    back = IndicTranslator("indic-en")
+    fwd = back = get_translator(prefer=a.translator)
     rom = Romanizer()
-    lines.append(f"processor: {fwd.ip.__class__.__name__} ({fwd.processor_name}); romanizer: {rom.backend}; "
-                 f"device: {fwd.device}; models loaded in {time.time() - t0:.0f}s\n")
+    lines.append(f"translator: {fwd.name}; romanizer: {rom.backend}; models loaded in {time.time() - t0:.0f}s\n")
     for L in ("hi", "kn"):
         t = time.time()
         native = fwd.translate(SENTENCES, "en", L)

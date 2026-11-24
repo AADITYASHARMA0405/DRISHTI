@@ -21,6 +21,6 @@ class QueryNormaliser:
             lang = lang[:-4]
             text = self._rom.from_roman(text, lang)
         if self._tr is None:
-            from .translate import IndicTranslator
-            self._tr = IndicTranslator("indic-en")
+            from .translate import get_translator
+            self._tr = get_translator()
         return self._tr.translate([text], lang, "en")[0]
