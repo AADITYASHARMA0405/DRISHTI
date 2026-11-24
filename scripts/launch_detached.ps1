@@ -1,8 +1,11 @@
-<#
-Start a long bash job (e.g. scripts/run_phase1.sh) so it keeps running after the terminal or editor that
-started it closes. The job is created through WMI, so it is not a child of this shell.
+﻿<#
+Start a long bash job (e.g. scripts/run_phase1.sh) so it keeps running after the terminal, editor or
+assistant session that started it closes.
 
     powershell -File scripts/launch_detached.ps1 -Script scripts/run_phase1.sh -ScriptArgs "1 2 3" -HfHome D:\ANN\.hf-cache
+
+The job is created with CREATE_BREAKAWAY_FROM_JOB in its own minimised console titled "DRISHTI training -
+do not close", so closing the parent (or its Windows job object) does not end it.
 
 Progress:  outputs\logs\<script-name>.out  and the per-run logs in outputs\logs\
 Stop it:   powershell -File scripts/stop_training.ps1   (training resumes from its last epoch on the next launch)
@@ -22,10 +25,6 @@ $log = "$repo\outputs\logs\$name.out"
 # whole job ("forrtl: error (200)") when a console close / Ctrl-C event arrives.
 $envPart = "set FOR_DISABLE_CONSOLE_CTRL_HANDLER=1&& "
 if ($HfHome) { $envPart += "set HF_HOME=$HfHome&& " }
-$cmd = "cmd.exe /c `"$envPart`"$Bash`" $Script $ScriptArgs >> `"$log`" 2>&1`""
-# Hidden window: nothing on screen that could be closed by accident.
-$startup = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ ShowWindow = [uint16]0 }
-$r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
-    CommandLine = $cmd; CurrentDirectory = $repo; ProcessStartupInformation = $startup }
-if ($r.ReturnValue -ne 0) { throw "Could not start the job (Win32_Process.Create returned $($r.ReturnValue))" }
-"Started $Script $ScriptArgs  (pid $($r.ProcessId)); log: $log"
+$cmd = "$env:SystemRoot\System32\cmd.exe /c `"$envPart`"$Bash`" $Script $ScriptArgs >> `"$log`" 2>&1`""
+$procId = & "$PSScriptRoot\_breakaway.ps1" -CommandLine $cmd -WorkDir $repo
+"Started $Script $ScriptArgs  (pid $procId); log: $log"
