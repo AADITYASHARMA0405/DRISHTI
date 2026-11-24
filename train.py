@@ -18,7 +18,8 @@ from drishti.config import load_config, output_dir
 from drishti.data import PedesTrain, collate_train, gallery_and_queries, load_records
 from drishti.evaluation import encode_gallery, evaluate_queries
 from drishti.models import DualEncoder, save_checkpoint, total_loss
-from drishti.utils import KeepAwake, RunLogger, get_device, get_rng_state, set_rng_state, set_seed
+from drishti.utils import (KeepAwake, RunLogger, get_device, get_rng_state, set_rng_state, set_seed,
+                           wait_for_mains)
 
 
 def noise_ratio_for_epoch(epoch: int, cfg: dict) -> float:
@@ -103,7 +104,8 @@ def main(argv=None) -> dict:
         print(f"[train] resumed after epoch {start_epoch} (best val R1 {best:.2f})")
 
     logger = RunLogger(out, cfg)
-    with KeepAwake():
+    pause_on_battery = bool(tc.get("pause_on_battery", True))
+    with KeepAwake(keep_display_on=bool(tc.get("keep_display_on", True))):
         for epoch in range(start_epoch, tc["epochs"]):
             ratio = noise_ratio_for_epoch(epoch, cfg)
             ds.set_epoch(epoch, ratio)
@@ -112,6 +114,8 @@ def main(argv=None) -> dict:
             t0, running = time.time(), {}
             opt.zero_grad(set_to_none=True)
             for it, batch in enumerate(tqdm(dl, desc=f"epoch {epoch + 1}/{tc['epochs']} noise={ratio:.2f}")):
+                if pause_on_battery and it % 25 == 0:
+                    t0 += wait_for_mains(log=lambda m: print(m, flush=True))   # paused time is not epoch time
                 batch = {k: (v.to(device, non_blocking=True) if torch.is_tensor(v) else v)
                          for k, v in batch.items()}
                 with torch.autocast(device_type=device.type, enabled=use_amp):

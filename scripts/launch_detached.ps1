@@ -5,7 +5,8 @@ started it closes. The job is created through WMI, so it is not a child of this 
     powershell -File scripts/launch_detached.ps1 -Script scripts/run_phase1.sh -ScriptArgs "1 2 3" -HfHome D:\ANN\.hf-cache
 
 Progress:  outputs\logs\<script-name>.out  and the per-run logs in outputs\logs\
-Stop it:   Stop-Process -Id <pid printed below>  (and its python children); training resumes on the next launch.
+Stop it:   powershell -File scripts/stop_training.ps1   (training resumes from its last epoch on the next launch)
+Keep the laptop plugged in: training pauses itself on battery and continues when the charger is back.
 #>
 param(
     [Parameter(Mandatory = $true)][string]$Script,
@@ -17,8 +18,14 @@ $repo = (Resolve-Path "$PSScriptRoot\..").Path
 $name = [IO.Path]::GetFileNameWithoutExtension($Script)
 New-Item -ItemType Directory -Force "$repo\outputs\logs" | Out-Null
 $log = "$repo\outputs\logs\$name.out"
-$envPart = if ($HfHome) { "set HF_HOME=$HfHome&& " } else { "" }
+# FOR_DISABLE_CONSOLE_CTRL_HANDLER stops Intel's Fortran runtime (inside PyTorch's MKL) from aborting the
+# whole job ("forrtl: error (200)") when a console close / Ctrl-C event arrives.
+$envPart = "set FOR_DISABLE_CONSOLE_CTRL_HANDLER=1&& "
+if ($HfHome) { $envPart += "set HF_HOME=$HfHome&& " }
 $cmd = "cmd.exe /c `"$envPart`"$Bash`" $Script $ScriptArgs >> `"$log`" 2>&1`""
-$r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = $cmd; CurrentDirectory = $repo }
+# Hidden window: nothing on screen that could be closed by accident.
+$startup = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ ShowWindow = [uint16]0 }
+$r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
+    CommandLine = $cmd; CurrentDirectory = $repo; ProcessStartupInformation = $startup }
 if ($r.ReturnValue -ne 0) { throw "Could not start the job (Win32_Process.Create returned $($r.ReturnValue))" }
 "Started $Script $ScriptArgs  (pid $($r.ProcessId)); log: $log"

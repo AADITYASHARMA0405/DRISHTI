@@ -37,13 +37,20 @@ def get_device() -> torch.device:
 
 
 class KeepAwake:
-    """Ask Windows not to idle-sleep while training runs (the call video players use).
+    """Ask Windows not to sleep while training runs (the call video players use).
 
-    No system setting is changed; the request ends when the block exits or the process ends. Closing the
-    laptop lid still sleeps the machine. Does nothing on other operating systems.
+    On "Modern Standby" laptops the system drops into standby as soon as the screen turns off for
+    inactivity, so the display is kept on as well. No system setting is changed; the request ends when the
+    block exits or the process ends. Closing the lid or a low battery still sleeps the machine. Does nothing
+    on other operating systems.
     """
 
-    ES_CONTINUOUS, ES_SYSTEM_REQUIRED = 0x80000000, 0x00000001
+    ES_CONTINUOUS, ES_SYSTEM_REQUIRED, ES_DISPLAY_REQUIRED = 0x80000000, 0x00000001, 0x00000002
+
+    def __init__(self, keep_display_on: bool = True):
+        self.flags = self.ES_CONTINUOUS | self.ES_SYSTEM_REQUIRED
+        if keep_display_on:
+            self.flags |= self.ES_DISPLAY_REQUIRED
 
     def __enter__(self):
         import sys
@@ -51,13 +58,45 @@ class KeepAwake:
         if sys.platform == "win32":
             import ctypes
             self._k32 = ctypes.windll.kernel32
-            self._k32.SetThreadExecutionState(self.ES_CONTINUOUS | self.ES_SYSTEM_REQUIRED)
+            self._k32.SetThreadExecutionState(self.flags)
         return self
 
     def __exit__(self, *exc):
         if self._k32 is not None:
             self._k32.SetThreadExecutionState(self.ES_CONTINUOUS)
         return False
+
+
+def on_battery() -> bool:
+    """True when a Windows laptop is running on battery (False on mains power, desktops or other OSes)."""
+    import sys
+    if sys.platform != "win32":
+        return False
+    import ctypes
+
+    class _Status(ctypes.Structure):
+        _fields_ = [("ACLineStatus", ctypes.c_ubyte), ("BatteryFlag", ctypes.c_ubyte),
+                    ("BatteryLifePercent", ctypes.c_ubyte), ("SystemStatusFlag", ctypes.c_ubyte),
+                    ("BatteryLifeTime", ctypes.c_ulong), ("BatteryFullLifeTime", ctypes.c_ulong)]
+
+    s = _Status()
+    if not ctypes.windll.kernel32.GetSystemPowerStatus(ctypes.byref(s)):
+        return False
+    return s.ACLineStatus == 0
+
+
+def wait_for_mains(check=on_battery, poll_s: float = 30.0, log=print) -> float:
+    """Block while the laptop is on battery so training never drains it into a forced sleep.
+    Returns the seconds spent waiting."""
+    if not check():
+        return 0.0
+    t0 = time.time()
+    log("[power] on battery: training paused until the charger is connected")
+    while check():
+        time.sleep(poll_s)
+    waited = time.time() - t0
+    log(f"[power] mains power back after {waited / 60:.1f} min: resuming")
+    return waited
 
 
 class RunLogger:

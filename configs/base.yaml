@@ -29,6 +29,8 @@ train:
   warmup_epochs: 1
   grad_accum: 1
   amp: true           # mixed precision on GPU
+  pause_on_battery: true   # laptops: pause instead of draining the battery into a forced sleep
+  keep_display_on: true    # Modern Standby laptops go to standby when the screen times out
 
 loss:
   sdm: 1.0            # Similarity Distribution Matching weight
