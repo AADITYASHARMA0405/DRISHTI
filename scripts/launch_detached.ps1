@@ -4,8 +4,7 @@ assistant session that started it closes.
 
     powershell -File scripts/launch_detached.ps1 -Script scripts/run_phase1.sh -ScriptArgs "1 2 3" -HfHome D:\ANN\.hf-cache
 
-The job is created with CREATE_BREAKAWAY_FROM_JOB in its own minimised console titled "DRISHTI training -
-do not close", so closing the parent (or its Windows job object) does not end it.
+The job is created with CREATE_BREAKAWAY_FROM_JOB in its own hidden console, so closing the parent (or its Windows job object) does not end it.
 
 Progress:  outputs\logs\<script-name>.out  and the per-run logs in outputs\logs\
 Stop it:   powershell -File scripts/stop_training.ps1   (training resumes from its last epoch on the next launch)

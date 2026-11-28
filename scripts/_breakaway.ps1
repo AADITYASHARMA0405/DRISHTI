@@ -23,7 +23,7 @@ $si = New-Object Drishti.Launch+STARTUPINFO
 $si.cb = [Runtime.InteropServices.Marshal]::SizeOf($si)
 $si.lpTitle = $Title
 $si.dwFlags = 0x1          # STARTF_USESHOWWINDOW
-$si.wShowWindow = 7        # SW_SHOWMINNOACTIVE
+$si.wShowWindow = 0        # SW_HIDE: no console window that can be closed by accident
 $pi = New-Object Drishti.Launch+PROCESS_INFORMATION
 $flags = [uint32](0x01000000 -bor 0x00000010 -bor 0x00000200)  # BREAKAWAY_FROM_JOB | NEW_CONSOLE | NEW_PROCESS_GROUP
 # [NullString]::Value, not $null: PowerShell would pass $null as "" and CreateProcess then fails with error 3
