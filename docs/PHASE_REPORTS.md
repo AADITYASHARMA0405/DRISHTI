@@ -120,8 +120,8 @@ application.
 
 ### Still open for Phase 1
 1. Obtain CUHK-PEDES (Dia), then run the MVP workflow in README section 3.
-2. Each member: accept the IndicTrans2 licence on Hugging Face and log in; run
-   `scripts/check_translation.py`, then the Indic query generation.
+2. Optional: accept the IndicTrans2 licence on Hugging Face and log in, then rerun
+   `scripts/make_indic_queries.py --translator indictrans2` to compare it with the NLLB-200 sets used now.
 3. Show the demo to the faculty guide (MVP sign-off).
 
 ---
@@ -169,9 +169,57 @@ model must close.
 | Recreating 4 workers each epoch on Windows | 3–4 extra minutes per epoch | Persistent workers (safe after the fix above) | Same test |
 | Laptop slept overnight; session end killed training | First baseline run lost ~12 hours and stopped in epoch 3 | Training asks Windows to stay awake while it runs; full resume (optimizer, scheduler, scaler, RNG) every epoch; `--stop-after N`; jobs started outside the chat session (`scripts/launch_detached.ps1`) | `tests/test_resume.py`: stopped-and-resumed run matches an uninterrupted run |
 | Run script had no model-cache path | Offline run could not find CLIP | `HF_HOME` passed by the launcher | Run started |
+| Modern Standby still slept the laptop ("Idle timeout", then "Battery drain budget exceeded" once unplugged) | Second baseline attempt stopped | Keep-awake also asks for the display (`ES_DISPLAY_REQUIRED`, needed on Modern Standby); training pauses itself on battery and continues when the charger is back | `tests/test_power.py` |
+| Intel Fortran runtime inside PyTorch's MKL aborted on a console close / Ctrl-C (`forrtl: error (200)`) | Whole job killed with no Python traceback | Launcher sets `FOR_DISABLE_CONSOLE_CTRL_HANDLER=1` | No further forrtl aborts |
+| The assistant's shell runs inside a Windows job object | Jobs it started died with the session | `scripts/_breakaway.ps1` starts the job with `CREATE_BREAKAWAY_FROM_JOB` | Training survived session restarts |
+| Training stopped silently in epoch 3 (23:37, no traceback, no crash event) with its minimised console open | ~5 hours of epoch 3 lost; resume restarts from epoch 2 | The detached console is now hidden, so it cannot be closed by accident; `scripts/stop_training.ps1` is the way to stop it | Next launch |
+| Hindi/Kannada translation (NLLB on the GPU) ran next to training | Training slowed from ≈ 1.8 to 15–25 s/step (6 GB GPU shared) | Never run a second GPU job during training; translation is finished now | – |
+
+### AC5 – Hindi and Kannada queries (translate-then-search)
+IndicTrans2 is licence-gated on Hugging Face, so `drishti/lang/translate.py` falls back to **NLLB-200
+distilled 600M** (open licence) when IndicTrans2 cannot be loaded (`tests/test_translate_fallback.py`).
+`scripts/make_indic_queries.py --translator nllb` turned all 2,000 RSTPReid test captions into eight sets:
+
+| Set | What the model receives |
+|---|---|
+| `hi`, `kn` | Native-script Hindi / Kannada, fed straight to the English encoder (no-translation reference) |
+| `hi_rom`, `kn_rom` | The same, romanized (ITRANS) – how people often type on phones |
+| `hi_t2s`, `kn_t2s` | Native script translated back to English, then searched (the MVP pipeline) |
+| `hi_rom_t2s`, `kn_rom_t2s` | Romanized text → native script → English → search |
+
+How much of each caption survives the round trip (attributes found by the noise parser in the English
+caption that are still present after en → L → en; `outputs/t2s_attribute_retention.txt`):
+
+| Set | Garment nouns kept | Colours kept |
+|---|---|---|
+| hi_t2s | 75.2% | 81.4% |
+| hi_rom_t2s | 75.2% | 81.5% |
+| kn_t2s | 70.2% | 76.9% |
+| kn_rom_t2s | 69.0% | 76.5% |
+
+Findings:
+* **The translator, not the language, is the first bottleneck.** A quarter (Hindi) to almost a third
+  (Kannada) of garment words and a fifth of colours are lost *before* retrieval starts. Typical losses:
+  trousers → "panties", kurta → "robe", dupatta → "sweater", saree → "dressed in red" (Kannada),
+  sandals → "shoes" (Hindi). Indian garment terms are hit hardest – the motivation for Phase 2's
+  attire-aware vocabulary and an Indic-capable text encoder.
+* **Romanization is almost lossless**: ITRANS round trip gives the same English as native script for 90.6%
+  of Hindi queries, so romanized input costs little extra once it is converted back.
+* Retrieval scores for these sets are computed for every trained model by `scripts/run_phase1.sh`
+  (`outputs/results_rstpreid_indic.csv`, `outputs/summary_rstpreid_indic.md`) and are added below as the
+  runs finish.
+
+### AC7 – reproducible from a fresh clone
+Fresh `git clone` of `phase-1-mvp` (commit 857022f) into an empty folder: the noisy sets regenerate with the
+same checksum `cfa305ad54858e86`, zero-shot evaluation gives the same numbers (R1 14.15, mAP 10.26), and the
+full test suite passes there on CPU (**35 passed**; 37 min on battery, almost all of it the end-to-end smoke
+test). **Done.**
 
 ### Runs (in progress)
 `scripts/run_phase1.sh 1 2 3`: baseline and robust model × seeds 1–3 on the RTX 4050 (batch 64, gradient
 checkpointing, ≈ 1.47 s/step, 578 steps/epoch, 10 epochs ≈ 2.5 h per run), each followed by evaluation on
 the clean set and all 12 noisy sets. Results go to `outputs/results_rstpreid.csv` and
 `outputs/summary_rstpreid.md`.
+
+Baseline seed 1 so far (validation split, clean queries): epoch 1 R1 34.0 / mAP 27.9, epoch 2 R1 41.3 /
+mAP 33.6 (zero-shot: 14.15 R1 on test). Resumes from epoch 2 on the next launch.
